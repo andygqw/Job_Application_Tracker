@@ -34,8 +34,8 @@ public class CloudFlareD1Service {
 
     public CloudFlareD1Service(){
 
-        END_POINT = "";
-        BEARER_TOKEN = "";
+        END_POINT = "https://api.cloudflare.com/client/v4/accounts/e58d203dbddb2b8e57559b5e677e50e9/d1/database/b934078c-4701-4273-88e2-fb8bb37f0ebb/raw";
+        BEARER_TOKEN = "YChXqrUrDaSeoKmNRg3CcsFNhcAk05ENiLeMvrh5";
 
         webClientBuilder = WebClient.builder();
         requestBody = new D1QueryRequestBody();
