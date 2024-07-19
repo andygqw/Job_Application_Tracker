@@ -26,3 +26,4 @@ replay_pid*
 # MAC OS
 .DS_Store
 .fake
+.vs_code/
