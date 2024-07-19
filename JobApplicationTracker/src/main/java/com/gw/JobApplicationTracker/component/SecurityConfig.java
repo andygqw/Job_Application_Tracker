@@ -13,23 +13,26 @@ import com.gw.JobApplicationTracker.service.CustomUserDetailsService;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
+
+        logger.warn("At least we at WebFilterChain");
         // http
         //     .authorizeExchange(authorizeRequests ->
         //         authorizeRequests
@@ -53,7 +56,7 @@ public class SecurityConfig {
         // return http.build();
         http
             .authorizeExchange()
-                .pathMatchers("api/login", "api/register").permitAll()
+                .pathMatchers("/login", "/register").permitAll()
                 .anyExchange().authenticated()
                 .and()
                 .httpBasic().and()
@@ -75,10 +78,11 @@ public class SecurityConfig {
     //     return manager;
     // }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new CustomUserDetailsService();
-    }
+    // @Bean
+    // public ReactiveUserDetailsService userDetailsService() {
+    //     logger.warn("Are we in userDetailsService?");
+    //     return new CustomUserDetailsService();
+    // }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

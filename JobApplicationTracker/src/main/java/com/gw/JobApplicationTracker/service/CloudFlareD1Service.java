@@ -1,14 +1,17 @@
 package com.gw.JobApplicationTracker.service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import com.gw.JobApplicationTracker.component.Utilities;
 import com.gw.JobApplicationTracker.model.D1QueryRequestBody;
-import com.gw.JobApplicationTracker.model.RawD1QueryResponse;
 import com.gw.JobApplicationTracker.model.User;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,40 +20,42 @@ import reactor.core.publisher.Mono;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import java.util.Iterator;
 
 @Service
 public class CloudFlareD1Service {
+
+    private static final Logger logger = LoggerFactory.getLogger(CloudFlareD1Service.class);
 
     private static String END_POINT;
 
     private static String BEARER_TOKEN;
 
-    private final WebClient.Builder webClientBuilder;
+    private final WebClient webClient;
 
     private D1QueryRequestBody requestBody;
 
     public CloudFlareD1Service(){
 
-        END_POINT = "https://api.cloudflare.com/client/v4/accounts/e58d203dbddb2b8e57559b5e677e50e9/d1/database/b934078c-4701-4273-88e2-fb8bb37f0ebb/raw";
-        BEARER_TOKEN = "YChXqrUrDaSeoKmNRg3CcsFNhcAk05ENiLeMvrh5";
+        END_POINT = "";
+        BEARER_TOKEN = "";
 
-        webClientBuilder = WebClient.builder();
-        requestBody = new D1QueryRequestBody();
+        webClient = WebClient.builder()
+                .baseUrl(END_POINT)
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("Authorization", "Bearer " + BEARER_TOKEN)
+                .build();
     }
 
-    @Async
-    public CompletableFuture<JsonNode> QueryD1(String query){
+    public CompletableFuture<JsonNode> QueryD1(String query) throws Exception{
 
-        WebClient webClient = webClientBuilder.build();
+        String body = "{\n  \"params\": [\n ],\n  \"sql\": \"" + query + "\"\n}";
 
         return webClient.post()
-                .uri(END_POINT)
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + BEARER_TOKEN)
-                .body(Mono.just(requestBody), D1QueryRequestBody.class)
+                .bodyValue(body)
                 .retrieve()
                 .bodyToMono(String.class)
                 // .doOnError(WebClientResponseException.class, ex -> {
@@ -68,6 +73,7 @@ public class CloudFlareD1Service {
                 .map(response -> {
 
                     try{
+                        logger.warn(response);
                         ObjectMapper objectMapper = new ObjectMapper();
                         return objectMapper.readTree(response);
                     }
@@ -79,10 +85,11 @@ public class CloudFlareD1Service {
                 .toFuture();
     }
 
-    @Async
-    public User GetUserDetails(String username){
+    public User GetUserDetails(String username) throws Exception{
 
-        String query = String.format("SELECT * FROM %s WHERE username = '%s'", Utilities.D1_DATABASE_NAME, username);
+        logger.warn("We now in D1Service.GetUserDetails");
+
+        String query = String.format("SELECT * FROM %s WHERE username = '%s'", Utilities.D1_TABLE_USERS, username);
 
         QueryD1(query).thenApply(response -> {
 
@@ -91,17 +98,21 @@ public class CloudFlareD1Service {
                 JsonNode user = response.path(Utilities.D1_RESULT)
                                                 .get(0)
                                                 .path(Utilities.D1_RESULTS)
-                                                .get(0)
+                                                //.get(0)
                                                 .path(Utilities.D1_ROWS);
+
+                logger.warn("Done parsing");
 
                 if(user.has(0)){
 
                     user = user.get(0);
+                    logger.info(user.toString());
                     User newUser = new User(user.get(0).asLong(), user.get(2).asText(), user.get(5).asText());
                     return newUser;
                 }
                 else{
 
+                    logger.warn("User not found");
                     return null;
                 }
             }
@@ -113,6 +124,7 @@ public class CloudFlareD1Service {
                                             .asText());
             }
         });
+
         return null;
     }
 }
