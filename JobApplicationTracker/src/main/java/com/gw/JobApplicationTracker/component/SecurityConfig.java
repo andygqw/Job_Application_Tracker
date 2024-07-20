@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .httpBasic().and()
                 .formLogin()
                     .loginPage("/login")
-                    .authenticationSuccessHandler(authenticationSuccessHandler())
+                    .authenticationSuccessHandler(authenticationSuccessHandler());
                 return http.build();
     }
 
