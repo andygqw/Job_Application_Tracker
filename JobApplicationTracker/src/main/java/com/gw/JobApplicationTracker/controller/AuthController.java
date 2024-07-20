@@ -15,11 +15,11 @@ public class AuthController {
         return "index";
     }
 
-    @GetMapping("/login")
-    public String login(){
+    // @GetMapping("/login")
+    // public String login(){
 
-        return "login";
-    }
+    //     return "login";
+    // }
 
 
 
