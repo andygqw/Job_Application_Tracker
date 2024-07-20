@@ -15,6 +15,8 @@ import reactor.core.publisher.Mono;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import java.net.URI;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +28,7 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
+import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -64,8 +67,12 @@ public class SecurityConfig {
                 .anyExchange().authenticated()
                 .and()
                 .httpBasic().and()
-                .formLogin()
-                    .authenticationSuccessHandler(authenticationSuccessHandler());
+            .formLogin()
+                    .authenticationSuccessHandler(authenticationSuccessHandler())
+                    .and()
+            .logout()
+                .logoutUrl("/logout")
+                .logoutSuccessHandler(logoutSuccessHandler());
                 return http.build();
     }
 
@@ -91,6 +98,13 @@ public class SecurityConfig {
     @Bean
     public ServerAuthenticationSuccessHandler authenticationSuccessHandler() {
         return new RedirectServerAuthenticationSuccessHandler("/dashboard");
+    }
+
+    @Bean
+    public RedirectServerLogoutSuccessHandler logoutSuccessHandler() {
+        RedirectServerLogoutSuccessHandler successHandler = new RedirectServerLogoutSuccessHandler();
+        successHandler.setLogoutSuccessUrl(URI.create("/"));
+        return successHandler;
     }
 
     @Bean
