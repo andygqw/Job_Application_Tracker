@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 
 import com.gw.JobApplicationTracker.service.CustomUserDetailsService;
 
+import reactor.core.publisher.Mono;
+
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import org.slf4j.Logger;
@@ -22,6 +24,8 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
+import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -32,7 +36,6 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
 
-        logger.warn("At least we at WebFilterChain");
         // http
         //     .authorizeExchange(authorizeRequests ->
         //         authorizeRequests
@@ -56,11 +59,13 @@ public class SecurityConfig {
         // return http.build();
         http
             .authorizeExchange()
-                .pathMatchers("/login", "/register").permitAll()
+                .pathMatchers("/", "/login", "/register").permitAll()
                 .anyExchange().authenticated()
                 .and()
                 .httpBasic().and()
-                .formLogin();
+                .formLogin()
+                    .loginPage("/login")
+                    .authenticationSuccessHandler(authenticationSuccessHandler());
                 return http.build();
     }
 
@@ -83,6 +88,10 @@ public class SecurityConfig {
     //     logger.warn("Are we in userDetailsService?");
     //     return new CustomUserDetailsService();
     // }
+    @Bean
+    public ServerAuthenticationSuccessHandler authenticationSuccessHandler() {
+        return new RedirectServerAuthenticationSuccessHandler("/dashboard");
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

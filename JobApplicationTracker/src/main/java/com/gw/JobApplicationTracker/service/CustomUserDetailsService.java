@@ -1,16 +1,22 @@
 package com.gw.JobApplicationTracker.service;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.gw.JobApplicationTracker.JobApplicationTrackerApplication;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gw.JobApplicationTracker.component.Utilities;
 
 import reactor.core.publisher.Mono;
 
@@ -27,35 +33,43 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService{
     @Override
     public Mono<UserDetails> findByUsername(String username){
 
-        logger.warn("We are now in findByUsername");
+        String query = String.format("SELECT * FROM %s WHERE username = '%s'", Utilities.D1_TABLE_USERS, username);
 
-        com.gw.JobApplicationTracker.model.User user = null;
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        try {
+        return _d1Service.GetQueryMono(query)
+                .map(ResponseEntity::getBody)
+                .flatMap(body -> {
+                    try {
+                        JsonNode jsonNode = objectMapper.readTree(body);
+                        return Mono.just(jsonNode);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException("Error processing JSON", e));
+                    }
+                })
+                .flatMap(body -> {
 
-            logger.warn(_d1Service.toString());
-            user = _d1Service.GetUserDetails(username);
+                    try{
+                        return Mono.just(body.findPath(Utilities.D1_ROWS).get(0));
+                    }
+                    catch(Exception ex){
 
-        } catch (Exception e) {
-            
-            logger.error(username, e.getMessage());
-        }
-
-        if (user != null){
-
-            logger.warn("User: " + user.toString());
-
-            return Mono.just(
-
-                User.withUsername(user.getUsername())
-                    .password(user.getPassword())
-                    .roles("USER")
-                    .build()
-            );
-        }
-        else{
-
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
+                        return Mono.error(new UsernameNotFoundException("User not found"));
+                    }
+                })
+                .map(user -> User.withUsername(user.get(5).asText())
+                            .password(user.get(2).asText())
+                            .roles("USER")
+                            .build()
+                )
+                .doOnError(WebClientResponseException.class, ex -> {
+                    logger.warn("Error response: " + ex.getStatusCode(), ex);
+                })
+                .doOnError(IOException.class, ex -> {
+                    logger.warn(ex.getMessage());
+                })
+                .doOnError(Throwable.class, ex -> {
+                    logger.error("Unexpected error: ", ex);
+                });
     }
 }

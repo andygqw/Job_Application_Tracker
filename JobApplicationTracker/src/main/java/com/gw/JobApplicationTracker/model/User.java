@@ -12,6 +12,10 @@ public class User {
     private LocalDate registration_date;
     private String additional_info;
     private String username;
+
+    public User() {
+
+    }
     
     public User(long id, String password, String username) {
         this.id = id;

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/dashboard")
-public class dashboardController {
+public class DashboardController {
 
 
 
