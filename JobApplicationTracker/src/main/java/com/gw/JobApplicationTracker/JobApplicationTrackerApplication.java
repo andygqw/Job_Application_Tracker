@@ -17,6 +17,6 @@ public class JobApplicationTrackerApplication {
 
 		SpringApplication.run(JobApplicationTrackerApplication.class, args);
 
-		logger.warn("Ooooooooooh!!!!!");
+		logger.warn("Manual loggin started");
 	}
 }
