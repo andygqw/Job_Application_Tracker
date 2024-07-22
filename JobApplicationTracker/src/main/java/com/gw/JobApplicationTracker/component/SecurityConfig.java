@@ -3,13 +3,14 @@ package com.gw.JobApplicationTracker.component;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
 import java.net.URI;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -37,19 +38,20 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) 
             .authorizeExchange()
-                .pathMatchers("/", "/login", "/register").permitAll()
+                .pathMatchers( "/", "/login", "/register").permitAll()
                 .anyExchange().authenticated()
                 .and()
-                .httpBasic().and()
+                .httpBasic()
+                .and()
             .formLogin()
                 .authenticationSuccessHandler(authenticationSuccessHandler())
                 .and()
             .logout()
                 .logoutUrl("/logout")
-                .logoutSuccessHandler(logoutSuccessHandler())
-                .and()
-            .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint);
+                .logoutSuccessHandler(logoutSuccessHandler());
+            //    .and()
+            // .exceptionHandling()
+            //     .authenticationEntryPoint(authenticationEntryPoint);
 
         return http.build();
     }
