@@ -42,7 +42,6 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
     public Mono<Authentication> authenticate(Authentication authentication) {
 
         String token = (String) authentication.getCredentials();
-        logger.warn("Token in AuthenticationManager.authenticate: " + token);
         if (jwtTokenProvider.validateToken(token)) {
 
             logger.warn("Token is valid in AuthenticationManager.authenticate");
