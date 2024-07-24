@@ -16,4 +16,7 @@ public class Utilities {
     public static final String D1_ROWS = "rows";
     public static final String D1_ERRORS = "errors";
     public static final String D1_MESSAGE = "message";
+
+    // JWT Token constants:
+    public static final String COOKIE_USER_ID = "id";
 }
