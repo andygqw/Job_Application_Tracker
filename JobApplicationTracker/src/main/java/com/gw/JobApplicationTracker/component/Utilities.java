@@ -19,4 +19,8 @@ public class Utilities {
 
     // JWT Token constants:
     public static final String COOKIE_USER_ID = "id";
+    public static final String COOKIE_ROLES = "roles";
+
+    // Security Authentication ROLES
+    public static final String ROLE_USER = "USER";
 }
