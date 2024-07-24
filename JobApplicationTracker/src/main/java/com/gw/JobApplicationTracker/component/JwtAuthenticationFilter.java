@@ -1,13 +1,9 @@
 package com.gw.JobApplicationTracker.component;
 
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-
-import com.gw.JobApplicationTracker.service.CloudFlareD1Service;
 
 import reactor.core.publisher.Mono;
 import org.springframework.security.core.Authentication;
@@ -15,7 +11,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 @Component

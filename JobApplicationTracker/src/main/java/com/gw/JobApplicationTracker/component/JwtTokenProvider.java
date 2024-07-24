@@ -7,17 +7,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.gw.JobApplicationTracker.model.CustomAuthenticationToken;
 import com.gw.JobApplicationTracker.model.UserPrincipal;
-import com.gw.JobApplicationTracker.service.CloudFlareD1Service;
 
 import java.util.Collection;
 import java.util.Date;
@@ -25,7 +22,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(CloudFlareD1Service.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     @Value("${app.jwtSecret}")
     private String jwtSecret;
@@ -36,8 +33,6 @@ public class JwtTokenProvider {
     public String generateToken(UserPrincipal userDetails) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-
-        logger.warn(userDetails.toString());
 
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())

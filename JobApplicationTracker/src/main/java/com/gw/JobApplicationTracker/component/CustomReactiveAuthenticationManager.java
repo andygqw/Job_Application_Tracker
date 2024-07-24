@@ -1,8 +1,6 @@
 package com.gw.JobApplicationTracker.component;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.slf4j.Logger;
@@ -16,7 +14,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.gw.JobApplicationTracker.model.CustomAuthenticationToken;
 import com.gw.JobApplicationTracker.model.UserPrincipal;
-import com.gw.JobApplicationTracker.service.CloudFlareD1Service;
 import com.gw.JobApplicationTracker.service.CustomUserDetailsService;
 
 import reactor.core.publisher.Mono;
@@ -24,7 +21,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class CustomReactiveAuthenticationManager implements ReactiveAuthenticationManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(CloudFlareD1Service.class);
+    private static final Logger logger = LoggerFactory.getLogger(CustomReactiveAuthenticationManager.class);
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -42,6 +39,7 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
     public Mono<Authentication> authenticate(Authentication authentication) {
 
         String token = (String) authentication.getCredentials();
+        logger.warn(authentication.toString());
         if (jwtTokenProvider.validateToken(token)) {
 
             logger.warn("Token is valid in AuthenticationManager.authenticate");

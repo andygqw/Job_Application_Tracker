@@ -107,7 +107,7 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService{
                 .map(user -> UserPrincipal.create(User.withUsername(user.get(5).asText())
                                                 .password(user.get(2).asText())
                                                 .roles(Utilities.ROLE_USER)
-                                                .build(), user.get(1).asInt()))
+                                                .build(), user.get(0).asInt()))
                 .doOnError(WebClientResponseException.class, ex -> {
                     logger.warn("Error response: " + ex.getStatusCode(), ex);
                 })
