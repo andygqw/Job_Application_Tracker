@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gw.JobApplicationTracker.component.Utilities;
+import com.gw.JobApplicationTracker.model.UserPrincipal;
 
 import reactor.core.publisher.Mono;
 
@@ -57,11 +58,11 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService{
                         return Mono.error(new UsernameNotFoundException("User not found"));
                     }
                 })
-                .map(user -> User.withUsername(user.get(5).asText())
-                            .password(user.get(2).asText())
-                            .roles(Utilities.ROLE_USER)
-                            .build()
-                )
+                .map(user -> UserPrincipal.create(User.withUsername(user.get(5).asText())
+                                                .password(user.get(2).asText())
+                                                .roles(Utilities.ROLE_USER)
+                                                .build(), user.get(1).asInt()))
+                .cast(UserDetails.class)
                 .doOnError(WebClientResponseException.class, ex -> {
                     logger.warn("Error response: " + ex.getStatusCode(), ex);
                 })

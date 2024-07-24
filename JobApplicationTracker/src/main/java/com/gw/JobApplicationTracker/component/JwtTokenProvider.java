@@ -37,6 +37,8 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
+        logger.warn(userDetails.toString());
+
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim(Utilities.COOKIE_USER_ID, userDetails.getId())

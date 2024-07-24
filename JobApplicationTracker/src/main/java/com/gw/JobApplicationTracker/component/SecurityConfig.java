@@ -1,8 +1,10 @@
 package com.gw.JobApplicationTracker.component;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import java.net.URI;
 
@@ -14,16 +16,27 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
+import org.springframework.web.server.WebFilter;
+
+import com.gw.JobApplicationTracker.model.UserPrincipal;
+
+import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
@@ -49,23 +62,28 @@ public class SecurityConfig {
                 .and()
                 .httpBasic()
                 .and()
-            .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .formLogin()
                 .authenticationSuccessHandler(authenticationSuccessHandler())
                 .and()
             .logout()
                 .logoutUrl("/logout")
-                .logoutSuccessHandler(logoutSuccessHandler());
-            //    .and()
-            // .exceptionHandling()
-            //     .authenticationEntryPoint(authenticationEntryPoint);
+                .logoutSuccessHandler(logoutSuccessHandler())
+                .and()
+            .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+            .exceptionHandling()
+                .authenticationEntryPoint((exchange, ex) -> {
+                    return Mono.fromRunnable(() -> {
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
+                    });
+                });
 
         return http.build();
     }
 
     @Bean
     public ServerAuthenticationSuccessHandler authenticationSuccessHandler() {
-        return new RedirectServerAuthenticationSuccessHandler("/dashboard");
+        return new JwtAuthenticationSuccessHandler();
     }
 
     @Bean

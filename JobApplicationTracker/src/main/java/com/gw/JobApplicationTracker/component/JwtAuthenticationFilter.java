@@ -7,11 +7,13 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.gw.JobApplicationTracker.service.CustomUserDetailsService;
+import com.gw.JobApplicationTracker.service.CloudFlareD1Service;
 
 import reactor.core.publisher.Mono;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -19,13 +21,10 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @Component
 public class JwtAuthenticationFilter extends AuthenticationWebFilter {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final CustomUserDetailsService customUserDetailsService;
+    private static final Logger logger = LoggerFactory.getLogger(CloudFlareD1Service.class);
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) {
-        super(authenticationManager -> Mono.empty());
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.customUserDetailsService = customUserDetailsService;
+    public JwtAuthenticationFilter(CustomReactiveAuthenticationManager authenticationManager) {
+        super(authenticationManager);
         setServerAuthenticationConverter(new JwtAuthenticationConverter());
     }
 
@@ -33,20 +32,11 @@ public class JwtAuthenticationFilter extends AuthenticationWebFilter {
         @Override
         public Mono<Authentication> convert(ServerWebExchange exchange) {
             String token = getJwtFromRequest(exchange.getRequest());
-            if (token != null && jwtTokenProvider.validateToken(token)) {
+            if (token != null) {
 
-                return Mono.just(jwtTokenProvider.getAuthentication(token));
-
-                // return customUserDetailsService.findById(userId)
-                //         .map(userDetails -> {
-                //             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                //             return authentication;
-                //         })
-                //         .doOnNext(authentication -> {
-                //             // Refresh token if still valid
-                //             String newToken = jwtTokenProvider.generateToken((UserDetails) authentication.getPrincipal());
-                //             exchange.getResponse().getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + newToken);
-                //         });
+                logger.warn("Successfully extract token from the request in AuthenticationWebFilter.Convert");
+                return Mono.just(new UsernamePasswordAuthenticationToken(null, token))
+                            .cast(Authentication.class);
             }
             return Mono.empty();
         }

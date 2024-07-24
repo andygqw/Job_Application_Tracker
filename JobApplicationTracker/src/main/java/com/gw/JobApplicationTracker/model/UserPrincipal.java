@@ -59,12 +59,22 @@ public class UserPrincipal implements UserDetails {
         return true;
     }
 
-    // public static UserPrincipal create(User user) {
-    //     return new UserPrincipal(
-    //         user.getId(),
-    //         user.getUsername(),
-    //         user.getPassword(),
-    //         user.getAuthorities()
-    //     );
-    // }
+    public static UserPrincipal create(UserDetails user, int id) {
+        return new UserPrincipal(
+            id,
+            user.getUsername(),
+            user.getPassword(),
+            user.getAuthorities()
+        );
+    }
+
+    @Override
+    public String toString() {
+        return "UserPrincipal{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", authorities=" + authorities +
+                '}';
+    }
 }
