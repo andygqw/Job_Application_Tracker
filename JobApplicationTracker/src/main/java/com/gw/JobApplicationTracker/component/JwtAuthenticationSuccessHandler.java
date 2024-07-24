@@ -22,7 +22,6 @@ public class JwtAuthenticationSuccessHandler implements ServerAuthenticationSucc
     public JwtAuthenticationSuccessHandler() {
     }
 
-
     @Override
     public Mono<Void> onAuthenticationSuccess(WebFilterExchange exchange, Authentication authentication) {
 

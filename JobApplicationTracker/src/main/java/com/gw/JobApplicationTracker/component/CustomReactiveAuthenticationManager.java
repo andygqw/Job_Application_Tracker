@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.stereotype.Component;
@@ -23,13 +24,20 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
 
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private CustomUserDetailsService _userService;
+
     public CustomReactiveAuthenticationManager(JwtTokenProvider jwtTokenProvider) {
+        logger.warn("CustomReactiveAuthenticationManager constructor");
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
+
+        logger.warn("Start of authenticate : " + authentication.toString());
         String token = (String) authentication.getCredentials();
+        logger.warn("Token in AuthenticationManager.authenticate: " + token);
         if (jwtTokenProvider.validateToken(token)) {
 
             logger.warn("Token is valid in AuthenticationManager.authenticate");
@@ -41,6 +49,7 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
                         ((ServerWebExchange) authentication.getDetails()).getResponse().getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + newToken);
                     });
         }
-        return Mono.empty();
+        logger.warn("End of authenticate");
+        return Mono.just(authentication);
     }
 }

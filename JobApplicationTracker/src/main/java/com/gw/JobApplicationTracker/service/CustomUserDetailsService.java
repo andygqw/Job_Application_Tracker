@@ -38,6 +38,8 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService{
 
         ObjectMapper objectMapper = new ObjectMapper();
 
+        logger.warn("Already in findByUsername");
+
         return _d1Service.GetQueryMono(query)
                 .map(ResponseEntity::getBody)
                 .flatMap(body -> {
