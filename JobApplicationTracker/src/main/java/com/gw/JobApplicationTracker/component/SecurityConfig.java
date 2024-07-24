@@ -2,6 +2,8 @@ package com.gw.JobApplicationTracker.component;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+
 import java.net.URI;
 
 
@@ -28,15 +30,12 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
-    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, 
-                            CustomAccessDeniedHandler accessDeniedHandler, 
-                            CustomAuthenticationEntryPoint authenticationEntryPoint) {
+                            CustomAccessDeniedHandler accessDeniedHandler) {
         
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.accessDeniedHandler = accessDeniedHandler;
-        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
     @Bean
@@ -61,10 +60,10 @@ public class SecurityConfig {
             .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .exceptionHandling()
                 .authenticationEntryPoint((exchange, ex) -> {
-                    return Mono.fromRunnable(() -> {
-                        //exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
-                    });
+                    logger.warn("Unauthenticated access, redirecting to /login");
+                    exchange.getResponse().setStatusCode(HttpStatus.FOUND);
+                    exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
+                    return exchange.getResponse().setComplete();
                 });
 
         return http.build();

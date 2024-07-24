@@ -76,7 +76,7 @@ public class JwtTokenProvider {
         } 
         catch (Exception ex) {
             
-            logger.warn("Token validation error", ex.getMessage());;
+            logger.warn("Token validation error, token: ", token);;
         }
         return false;
     }
