@@ -12,9 +12,10 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.web.server.ServerWebExchange;
 
 import com.gw.JobApplicationTracker.service.CustomUserDetailsService;
+import com.gw.JobApplicationTracker.model.CustomAuthenticationToken;
+import com.gw.JobApplicationTracker.model.UserPrincipal;
 
 import java.net.URI;
-import java.nio.file.attribute.UserPrincipal;
 
 import reactor.core.publisher.Mono;
 
@@ -33,7 +34,11 @@ public class JwtAuthenticationSuccessHandler implements ServerAuthenticationSucc
 
         logger.warn(authentication.toString());
 
-        String token = jwtTokenProvider.generateToken((com.gw.JobApplicationTracker.model.UserPrincipal) authentication.getPrincipal());
+
+        String token = jwtTokenProvider.generateToken(new UserPrincipal(((CustomAuthenticationToken) authentication).getUserId(), 
+                                authentication.getPrincipal().toString(),
+                                null, 
+                                authentication.getAuthorities()));
         exchange.getExchange().getResponse().getHeaders().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
         return Mono.fromRunnable(() -> {
