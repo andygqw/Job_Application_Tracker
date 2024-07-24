@@ -76,6 +76,49 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService{
                 });
     }
 
+    public Mono<UserPrincipal> findByUsernameWithId(String username){
+
+        String query = String.format("SELECT * FROM %s WHERE username = '%s'", Utilities.D1_TABLE_USERS, username);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        logger.warn("Already in findByUsernamewithId");
+
+        return _d1Service.GetQueryMono(query)
+                .map(ResponseEntity::getBody)
+                .flatMap(body -> {
+                    try {
+                        JsonNode jsonNode = objectMapper.readTree(body);
+                        return Mono.just(jsonNode);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException("Error processing JSON", e));
+                    }
+                })
+                .flatMap(body -> {
+
+                    try{
+                        return Mono.just(body.findPath(Utilities.D1_ROWS).get(0));
+                    }
+                    catch(Exception ex){
+
+                        return Mono.error(new UsernameNotFoundException("User not found"));
+                    }
+                })
+                .map(user -> UserPrincipal.create(User.withUsername(user.get(5).asText())
+                                                .password(user.get(2).asText())
+                                                .roles(Utilities.ROLE_USER)
+                                                .build(), user.get(1).asInt()))
+                .doOnError(WebClientResponseException.class, ex -> {
+                    logger.warn("Error response: " + ex.getStatusCode(), ex);
+                })
+                .doOnError(IOException.class, ex -> {
+                    logger.warn(ex.getMessage());
+                })
+                .doOnError(Throwable.class, ex -> {
+                    logger.error("Unexpected error: ", ex);
+                });
+    }
+
     public Mono<UserDetails> findById(int id){
 
         String query = String.format("SELECT * FROM %s WHERE username = '%d'", Utilities.D1_TABLE_USERS, id);

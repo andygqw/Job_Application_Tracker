@@ -21,11 +21,10 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 @Component
 public class JwtAuthenticationFilter extends AuthenticationWebFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(CloudFlareD1Service.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(CustomReactiveAuthenticationManager authenticationManager) {
         super(authenticationManager);
-        logger.warn("Successfully super JwtAuthenticationFilter");
         setServerAuthenticationConverter(new JwtAuthenticationConverter());
     }
 
