@@ -12,11 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 import reactor.core.publisher.Mono;
@@ -41,7 +43,7 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
 
-        jwtAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/user/**"));;
+        //jwtAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/user/**"));;
 
         http
             .csrf(csrf -> csrf.disable()) 
@@ -61,10 +63,13 @@ public class SecurityConfig {
             .exceptionHandling()
                 .authenticationEntryPoint((exchange, ex) -> {
                     logger.warn("Unauthenticated access, redirecting to /login");
-                    exchange.getResponse().setStatusCode(HttpStatus.FOUND);
+                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
                     return exchange.getResponse().setComplete();
-                });
+                })
+                .and()
+            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance()); // Disable default session management
+
 
         return http.build();
     }

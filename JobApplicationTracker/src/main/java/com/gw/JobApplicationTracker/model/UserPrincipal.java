@@ -1,11 +1,17 @@
 package com.gw.JobApplicationTracker.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.gw.JobApplicationTracker.service.CustomUserDetailsService;
 
 import java.util.Collection;
 
 public class UserPrincipal implements UserDetails {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserPrincipal.class);
 
     private int id;
     private String username;
@@ -59,6 +65,7 @@ public class UserPrincipal implements UserDetails {
     }
 
     public static UserPrincipal create(UserDetails user, int id) {
+        logger.warn("In UserPrinciple: " + user.getAuthorities().toArray().toString());
         return new UserPrincipal(
             id,
             user.getUsername(),

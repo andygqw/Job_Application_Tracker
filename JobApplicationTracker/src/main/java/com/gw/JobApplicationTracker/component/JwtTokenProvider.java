@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,8 @@ import com.gw.JobApplicationTracker.model.UserPrincipal;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -37,6 +40,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim(Utilities.COOKIE_USER_ID, userDetails.getId())
+                .claim(Utilities.COOKIE_ROLES, userDetails.getAuthorities())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
@@ -46,6 +50,7 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         
         Claims claims = getTokenBody(token);
+        logger.warn("claims: " + claims.toString());
         Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(Utilities.COOKIE_ROLES).toString());
         User principal = new User(claims.getSubject(), "", authorities);
         return new CustomAuthenticationToken(getUserIdFromToken(token), principal, token, authorities);
@@ -63,20 +68,32 @@ public class JwtTokenProvider {
 
         Claims claims = getTokenBody(token);
 
-        logger.warn(claims.toString());
-
         return claims.get(Utilities.COOKIE_USER_ID, Integer.class);
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthoritiesFromToken(String token){
+
+        Claims claims = getTokenBody(token);
+        
+        List<String> roles = claims.get(Utilities.COOKIE_ROLES, List.class);
+
+        logger.warn("roles: " + roles.toString());
+
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     public boolean validateToken(String token) {
         try {
 
+            logger.warn("Token expire: " + isTokenExpired(token));
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
             return !isTokenExpired(token);
         } 
         catch (Exception ex) {
             
-            logger.warn("Token validation error, token: ", token);;
+            logger.warn("Token validation error: ", ex.getMessage());;
         }
         return false;
     }

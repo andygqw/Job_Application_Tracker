@@ -1,6 +1,7 @@
 package com.gw.JobApplicationTracker.component;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.slf4j.Logger;
@@ -38,17 +39,22 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
 
+        logger.warn("Now in authenticate");
+
         String token = (String) authentication.getCredentials();
         if (jwtTokenProvider.validateToken(token)) {
 
             logger.warn("Token is valid in AuthenticationManager.authenticate");
 
-            return Mono.just(jwtTokenProvider.getAuthentication(token))
-                    .doOnNext(auth -> {
-                        // Refresh token if still valid
-                        String newToken = jwtTokenProvider.generateToken((UserPrincipal) auth.getPrincipal());
-                        ((ServerWebExchange) authentication.getDetails()).getResponse().getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + newToken);
-                    });
+            return Mono.just(jwtTokenProvider.getAuthentication(token));
+                    // .doOnNext(auth -> {
+                    //     // Refresh token if still valid
+                    //     String newToken = jwtTokenProvider.generateToken(new UserPrincipal(jwtTokenProvider.getUserIdFromToken(token), 
+                    //                         jwtTokenProvider.getUsernameFromToken(token), 
+                    //                         null, 
+                    //                         jwtTokenProvider.getAuthoritiesFromToken(token)));
+                    //     ((ServerWebExchange) authentication.getDetails()).getResponse().getHeaders().set(HttpHeaders.AUTHORIZATION, "Bearer " + newToken);
+                    // });
         }
         else{
 
