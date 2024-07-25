@@ -24,25 +24,4 @@ public class AuthController {
 
         return "login";
     }
-
-    // @PostMapping("/login")
-    // public Mono<ResponseEntity<?>> authenticateUser(@RequestBody LoginRequest loginRequest) {
-
-    //     logger.warn("Login Request: {}", loginRequest.getUsername());
-
-    //     return userDetailsService.findByUsername(loginRequest.getUsername())
-
-    //             .flatMap(userDetails -> {
-                    
-    //                 if (passwordEncoder.matches(loginRequest.getPassword(), userDetails.getPassword())) {
-
-    //                     String token = jwtTokenProvider.generateToken((UserPrincipal) userDetails);
-    //                     logger.warn("Login Success: {}", token );
-    //                     return Mono.just(ResponseEntity.ok(new LoginResponse(token)));
-    //                 } 
-    //                 else {
-    //                     return Mono.just(ResponseEntity.badRequest().body("Invalid username or password"));
-    //                 }
-    //             });
-    // }
 }

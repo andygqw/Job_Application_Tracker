@@ -24,4 +24,5 @@ public class DashboardController {
     public Mono<String> test() {
         return Mono.just("test");
     }
+
 }

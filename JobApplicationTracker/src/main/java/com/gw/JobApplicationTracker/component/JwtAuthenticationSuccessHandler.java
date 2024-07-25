@@ -29,9 +29,6 @@ public class JwtAuthenticationSuccessHandler implements ServerAuthenticationSucc
     @Override
     public Mono<Void> onAuthenticationSuccess(WebFilterExchange exchange, Authentication authentication) {
 
-        logger.warn("Authenticate: " + authentication.getAuthorities());
-        logger.warn("CustomAuth: " + ((CustomAuthenticationToken) authentication).getAuthorities());
-
         String token = jwtTokenProvider.generateToken(new UserPrincipal(((CustomAuthenticationToken) authentication).getUserId(), 
                                 authentication.getPrincipal().toString(),
                                 null, 
@@ -39,6 +36,7 @@ public class JwtAuthenticationSuccessHandler implements ServerAuthenticationSucc
         exchange.getExchange().getResponse().getHeaders().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
         return Mono.fromRunnable(() -> {
+
             exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
             //exchange.getExchange().getResponse().getHeaders().setLocation(URI.create("/dashboard"));
             logger.warn("After success: " + exchange.getExchange().getResponse().getHeaders());

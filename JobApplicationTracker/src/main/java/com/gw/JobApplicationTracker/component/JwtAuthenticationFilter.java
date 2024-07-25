@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends AuthenticationWebFilter {
     private class JwtAuthenticationConverter implements ServerAuthenticationConverter {
         @Override
         public Mono<Authentication> convert(ServerWebExchange exchange) {
-            logger.warn("We are in convert");
+            logger.warn("We are in convert: " + exchange.getRequest());
             String token = getJwtFromRequest(exchange.getRequest());
             if (token != null) {
 

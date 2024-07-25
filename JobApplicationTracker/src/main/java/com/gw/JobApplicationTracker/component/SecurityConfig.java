@@ -1,5 +1,6 @@
 package com.gw.JobApplicationTracker.component;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,8 @@ public class SecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
-
+    @Autowired
+    private CustomLogoutHandler customLogoutHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
@@ -57,18 +59,17 @@ public class SecurityConfig {
                 .and()
             .logout()
                 .logoutUrl("/logout")
+                .logoutHandler(customLogoutHandler)
                 .logoutSuccessHandler(logoutSuccessHandler())
                 .and()
             .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .exceptionHandling()
                 .authenticationEntryPoint((exchange, ex) -> {
                     logger.warn("Unauthenticated access, redirecting to /login");
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    exchange.getResponse().setStatusCode(HttpStatus.FOUND);
                     exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
                     return exchange.getResponse().setComplete();
-                })
-                .and()
-            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance()); // Disable default session management
+                });
 
 
         return http.build();
